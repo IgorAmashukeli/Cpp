@@ -76,7 +76,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
 
-    explicit UniquePtr(T* ptr = nullptr) noexcept : data_(ptr, Deleter{}) {}
+    explicit UniquePtr(T* ptr = nullptr) noexcept  {
+        data_.GetFirst() = ptr;
+    }
     UniquePtr(T* ptr, Deleter deleter) noexcept : data_(ptr, std::forward<Deleter>(deleter)) {}
 
     UniquePtr(UniquePtr&& other) noexcept {
@@ -211,7 +213,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
 
-    explicit UniquePtr(T* ptr = nullptr) noexcept : data_(ptr, Deleter{}) {}
+    explicit UniquePtr(T* ptr = nullptr) noexcept  {
+        data_.GetFirst() = ptr;
+    }
     UniquePtr(T* ptr, Deleter deleter) noexcept : data_(ptr, std::forward<Deleter>(deleter)) {}
 
     UniquePtr(UniquePtr&& other) noexcept {
