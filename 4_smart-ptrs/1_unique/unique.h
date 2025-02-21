@@ -3,6 +3,8 @@
 #include "compressed_pair.h"
 
 #include <cstddef>  // std::nullptr_t
+#include <iostream>
+#include <ostream>
 
 
 // default deleter for general types
@@ -11,6 +13,7 @@ struct Slug {
     Slug() = default;
 
     // move, copy constructors and assignments for dervived T
+    // very strange - maybe wrong
     template<typename U>
     Slug([[maybe_unused]] Slug<U>&& other) {}
 
@@ -76,15 +79,17 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
 
-    explicit UniquePtr(T* ptr = nullptr) noexcept  {
+    explicit UniquePtr(T* ptr = nullptr) noexcept {
         data_.GetFirst() = ptr;
+        //std::cout << "unique_ptr constructor\n";
     }
     UniquePtr(T* ptr, Deleter deleter) noexcept : data_(ptr, std::forward<Deleter>(deleter)) {}
 
     UniquePtr(UniquePtr&& other) noexcept {
         if (&other != this) {
-            Swap(other);
-            other.Reset();
+            this->GetDeleter() = std::move(other.GetDeleter());
+            this->data_.GetFirst() = other.data_.GetFirst();
+            other.Release();
         }
     }
 
@@ -93,33 +98,25 @@ public:
     template<typename U, typename Del>
     UniquePtr(UniquePtr<U, Del>&& other) noexcept {
         this->GetDeleter() = std::move(other.GetDeleter());
-
-        if (this->Get() != other.Get()) {
-            this->Reset();
-        }
-        data_.GetFirst() = std::move(other.Get());
+        this->data_.GetFirst() = other.Get();
         other.Release();
     }
-
-
-    // no copy constructor
-    UniquePtr(const UniquePtr& other) = delete;
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // `operator=`-s
 
+
+
     UniquePtr& operator=(UniquePtr&& other) noexcept {
         if (&other != this) {
-            Swap(other);
-            other.Reset();
+            if (other.Get() != this->Get()) {
+                this->Reset();
+                this->data_.GetFirst() = other.data_.GetFirst();
+                other.Release();
+            }
+            this->GetDeleter() = std::move(other.GetDeleter());
         }
-        return *this;
-    }
-
-
-    UniquePtr& operator=(std::nullptr_t ) noexcept {
-        this->Reset();
         return *this;
     }
 
@@ -132,16 +129,17 @@ public:
         if (this->Get() != other.Get()) {
             this->Reset();
         }
-        data_.GetFirst() = std::move(other.Get());
+        data_.GetFirst() = other.Get();
         other.Release();
 
         return *this;
     }
 
 
-
-     // no copy assignment operator
-    UniquePtr& operator=(const UniquePtr& other) = delete;
+    UniquePtr& operator=(std::nullptr_t ) noexcept {
+        this->Reset();
+        return *this;
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Destructor
@@ -202,8 +200,10 @@ public:
     }
 
 private:
-    CompressedPair<T*, Deleter> data_ = {nullptr, Deleter{}};
+    CompressedPair<T*, Deleter> data_;
 };
+
+
 
 // Specialization for arrays
 template <typename T, typename Deleter>
@@ -213,42 +213,44 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
 
-    explicit UniquePtr(T* ptr = nullptr) noexcept  {
+    explicit UniquePtr(T* ptr = nullptr) noexcept {
         data_.GetFirst() = ptr;
     }
     UniquePtr(T* ptr, Deleter deleter) noexcept : data_(ptr, std::forward<Deleter>(deleter)) {}
 
     UniquePtr(UniquePtr&& other) noexcept {
         if (&other != this) {
-            Swap(other);
-            other.Reset();
+            this->GetDeleter() = std::move(other.GetDeleter());
+            this->data_.GetFirst() = other.data_.GetFirst();
+            other.Release();
         }
     }
 
-     // move constructor for unique_ptr with derived types of template
+
+    // move constructor for unique_ptr with derived types of template
     template<typename U, typename Del>
     UniquePtr(UniquePtr<U[], Del>&& other) noexcept {
         this->GetDeleter() = std::move(other.GetDeleter());
-
-        if (this->Get() != other.Get()) {
-            this->Reset();
-        }
-        data_.GetFirst() = std::move(other.Get());
+        this->data_.GetFirst() = other.data_.GetFirst();
         other.Release();
     }
-
-    UniquePtr(const UniquePtr& other) = delete;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // `operator=`-s
 
     UniquePtr& operator=(UniquePtr&& other) noexcept {
         if (&other != this) {
-            Swap(other);
-            other.Reset();
+            if (other.Get() != this->Get()) {
+                this->Reset();
+                this->data_.GetFirst() = other.data_.GetFirst();
+                other.Release();
+            }
+            this->GetDeleter() = std::move(other.GetDeleter());
         }
         return *this;
     }
+
+
 
     UniquePtr& operator=(std::nullptr_t ) noexcept {
         this->Reset();
@@ -258,22 +260,21 @@ public:
 
     // assignment operator for unique_ptr with derived types of template
     template<typename U, typename Del>
-    UniquePtr& operator=(UniquePtr<U[], Del>&& other) noexcept {
+    UniquePtr& operator=(UniquePtr<U, Del>&& other) noexcept {
         this->GetDeleter() = std::move(other.GetDeleter());
 
         if (this->Get() != other.Get()) {
             this->Reset();
         }
-        data_.GetFirst() = std::move(other.Get());
+        data_.GetFirst() = other.Get();
         other.Release();
 
         return *this;
     }
 
 
-    // no copy assignment operator
-    UniquePtr& operator=(const UniquePtr& other) = delete;
-   
+
+    
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,5 +335,7 @@ public:
     
 
 private:
-    CompressedPair<T*, Deleter> data_ = {nullptr, Deleter{}};
+    CompressedPair<T*, Deleter> data_;
 };
+
+
