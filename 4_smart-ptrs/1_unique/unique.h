@@ -103,6 +103,10 @@ public:
     }
 
 
+    // no copy constructor for unique_ptr
+    UniquePtr(const UniquePtr& other) = delete;
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // `operator=`-s
 
@@ -140,6 +144,10 @@ public:
         this->Reset();
         return *this;
     }
+
+
+    // no copy assignment operator for unique_ptr
+    UniquePtr& operator=(const UniquePtr& other) = delete;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Destructor
@@ -235,6 +243,10 @@ public:
         other.Release();
     }
 
+
+    // no copy constructor for unique_ptr
+    UniquePtr(const UniquePtr& other) = delete;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // `operator=`-s
 
@@ -273,6 +285,8 @@ public:
     }
 
 
+    // no copy assignment operator for unique_ptr
+    UniquePtr& operator=(const UniquePtr& other) = delete;
 
     
 
