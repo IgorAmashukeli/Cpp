@@ -115,7 +115,7 @@ public:
         return *this;
     }
 
-    const auto operator* () const {
+    auto operator* () const {
         return std::make_pair(*it1_, *it2_);
     }
 
@@ -135,7 +135,7 @@ template<typename Iterator>
 class GroupIterator {
 public:
 
-    Iterator find_finish(Iterator start) const {
+    Iterator FindFinish(Iterator start) const {
         if (start != seq_end_) {
             return std::find_if(start, seq_end_, [&](const auto& q) {return !(q == *start);});
         } else {
@@ -144,12 +144,12 @@ public:
     }
 
     GroupIterator(Iterator start, Iterator seq_end) : start_(start), seq_end_(seq_end) {
-        finish_ = find_finish(start);
+        finish_ = FindFinish(start);
     }
 
     GroupIterator& operator++ () {
         start_ = finish_;
-        finish_ = find_finish(start_);
+        finish_ = FindFinish(start_);
         return *this;
     }
 

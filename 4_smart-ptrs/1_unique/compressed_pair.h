@@ -82,8 +82,8 @@ public:
     }
 
 private:
-    F f_;
-    S s_;
+    F f_{};
+    S s_{};
 };
 
 
@@ -114,7 +114,7 @@ public:
 
 
 private:
-    F f_;
+    F f_{};
 };
 
 
@@ -145,7 +145,7 @@ public:
     }
 
 private:
-    S s_;
+    S s_{};
 };
 
 

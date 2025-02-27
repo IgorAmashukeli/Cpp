@@ -1,4 +1,8 @@
 #include "string_operations.h"
+#include <string>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 // 1) for this function, there is no need for std::string
 // (there is no allocation needed)
@@ -238,7 +242,6 @@ std::vector<std::string_view> StrSplit(std::string_view text, std::string_view d
 // therefore returns std::string as a type of the result
 
 std::string ReadN(const std::string& filename, size_t n) {
-    
     // n < 0 shouldn't be passed as an argument
     // if n == 0 => nothing to do => return ""
     if (n == 0) {
@@ -246,26 +249,27 @@ std::string ReadN(const std::string& filename, size_t n) {
     }
 
     // opens a file
-    FILE* file = std::fopen(filename.c_str(), "r");
+    int fd = open(filename.c_str(), O_RDONLY);
 
     // can't open file -> return empty string
-    if (!file) {
+    if (fd < 0) {
         return "";
     }
 
     // string result
     std::string res(n, '0');
 
-    // n > 0 => res[0] exists
-    const size_t ret_code = std::fread(&res[0], sizeof(res[0]), n, file);
+    ssize_t ret_code = read(fd, static_cast<void*>(&res[0]), n);
+
+
     
     // something went wrong with reading -> return empty string
-    if (ret_code != n) {
+    if (static_cast<size_t>(ret_code) != n) {
         return "";
     }
 
     // close the file
-    std::fclose(file);
+    close(fd);
     
     // return result
     // hope: there will be copy elision or move constructor called

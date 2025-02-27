@@ -37,7 +37,7 @@ TEST_CASE("Range huge") {
 }
 
 
-/*
+
 TEST_CASE("Zip equal") {
     std::vector<int> first{1, 3, 5};
     std::list<int> second{6, 4, 2};
@@ -170,4 +170,3 @@ TEST_CASE("No copying containers") {
         }
     }
 }
-*/
