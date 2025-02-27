@@ -1,5 +1,0 @@
-push
-3
-dup
-pop_carry
-print

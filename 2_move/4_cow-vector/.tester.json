@@ -1,8 +1,0 @@
-{
-    "allow_change": ["cow_vector.h", "cow_vector.cpp"],
-    "tests": "test_cow_vector",
-    "solutions": "private",
-    "forbidden_containers" : [
-        "shared_ptr"
-    ]
-}

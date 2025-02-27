@@ -1,6 +1,0 @@
-add_subdirectory(compressed-pair)
-add_subdirectory(cow-vector)
-add_subdirectory(harakiri)
-add_subdirectory(rule-of-5)
-add_subdirectory(reallol)
-add_subdirectory(string-operations)
