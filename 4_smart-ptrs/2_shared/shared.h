@@ -2,6 +2,7 @@
 #include "sw_fwd.h"  // Forward declaration
 
 #include <cstddef>  // std::nullptr_t
+#include <memory>
 
 class ControlBlock {
 public:
