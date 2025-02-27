@@ -5,34 +5,32 @@
 
 class ControlBlock {
 public:
-    // pure virtual control block destructor
+    // virtual control block destructor
     virtual ~ControlBlock() = default;
-    
-    // pure virtual get count
-    virtual size_t GetCounter() {
+
+    size_t GetCounter() {
         return counter_;
     }
 
-    // pure virtual increment function
-    virtual void Inc() {
+    void Inc() {
         ++counter_;
     }
 
-    // pure virtual decrement function
-    virtual void Dec() {
+    // decrement function
+    void Dec() {
         if (counter_ > 1) {
             --counter_;
         } else {
             delete this;
         }
     }
+
 private:
     size_t counter_ = 1;
 };
 
-
 // control block, when block stores pointer
-template<typename Y>
+template <typename Y>
 class ControlBlockPtr : public ControlBlock {
 public:
     ControlBlockPtr(Y* y_ptr) : y_ptr_(y_ptr) {};
@@ -45,58 +43,50 @@ private:
     Y* y_ptr_;
 };
 
-
 // control block, when block stores object
-template<typename Y>
+template <typename Y>
 class ControlBlockObject : public ControlBlock {
 public:
-
-    template<typename... Args>
-    ControlBlockObject(Args&&... args) : y_(std::forward<Args>(args)...) {}
+    template <typename... Args>
+    ControlBlockObject(Args&&... args) : y_(std::forward<Args>(args)...) {
+    }
 
     Y* GetY() {
         return &y_;
     }
 
     ~ControlBlockObject() = default;
+
 private:
     Y y_;
 };
-
-
-
 
 // https://en.cppreference.com/w/cpp/memory/shared_ptr
 template <typename T>
 class SharedPtr {
 public:
-    
-    
-
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors
 
     // default constructor is the same as std::nullptr_t constructor
     // it doesn't change anything
     SharedPtr() noexcept = default;
-    SharedPtr(std::nullptr_t) noexcept {}
-    
+    SharedPtr(std::nullptr_t) noexcept {
+    }
+
     // control block of Y, observing T*
     // can have Y = T
-    template<typename Y>
+    template <typename Y>
     explicit SharedPtr(Y* ptr) {
         ptr_ = ptr;
         block_ = new ControlBlockPtr<Y>(ptr);
     }
 
-    template<typename Y>
+    template <typename Y>
     SharedPtr(Y* ptr, ControlBlockObject<Y>* block) {
         ptr_ = ptr;
         block_ = block;
     }
-
 
     SharedPtr(const SharedPtr& other) noexcept {
         if (other.block_ != nullptr) {
@@ -106,8 +96,7 @@ public:
         }
     }
 
-
-    template<typename Y>
+    template <typename Y>
     SharedPtr(const SharedPtr<Y>& other) noexcept {
         if (other.block_ != nullptr) {
             ptr_ = other.ptr_;
@@ -116,12 +105,11 @@ public:
         }
     }
 
-
     SharedPtr(SharedPtr&& other) noexcept {
         Swap(other);
     }
 
-    template<typename Y>
+    template <typename Y>
     SharedPtr(SharedPtr<Y>&& other) {
         if (other.block_ != nullptr) {
             ptr_ = other.ptr_;
@@ -129,7 +117,6 @@ public:
             other.ptr_ = nullptr;
             other.block_ = nullptr;
         }
-        
     }
 
     // Aliasing constructor
@@ -141,9 +128,11 @@ public:
             block_ = other.block_;
             block_->Inc();
         }
-
     }
 
+    // Promote `WeakPtr`
+    // #11 from https://en.cppreference.com/w/cpp/memory/shared_ptr/shared_ptr
+    explicit SharedPtr(const WeakPtr<T>& other);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // `operator=`-s
@@ -172,7 +161,7 @@ public:
         return *this;
     }
 
-    template<typename Y>
+    template <typename Y>
     SharedPtr& operator=(const SharedPtr<Y>& other) noexcept {
         if (block_ != other.block_) {
             Reset();
@@ -186,7 +175,7 @@ public:
         return *this;
     }
 
-    template<typename Y>
+    template <typename Y>
     SharedPtr& operator=(SharedPtr<Y>&& other) noexcept {
         if (block_ != other.block_) {
             Reset();
@@ -204,15 +193,12 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Destructor
 
-
     ~SharedPtr() {
         Reset();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Modifiers
-
-    
 
     void Reset() {
         if (block_) {
@@ -231,9 +217,8 @@ public:
         }
     }
 
-
     // ptr is not owned (otherwise - UB - as in STL)
-    template<typename Y>
+    template <typename Y>
     void Reset(Y* ptr) {
         Reset();
         if (ptr != nullptr) {
@@ -247,7 +232,6 @@ public:
         // swaping ptr and block
         std::swap(ptr_, other.ptr_);
         std::swap(block_, other.block_);
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,8 +260,8 @@ public:
 
 private:
     // adding friend class SharedPtr
-    // it is done to be access private fields of SharedPtr<Y> for different Y
-    template<typename Y>
+    // it is done to access private fields of SharedPtr<Y> for different Y
+    template <typename Y>
     friend class SharedPtr;
 
     // sizeof will be 16 as in shared_ptr (two pointers of sizeof 8)
@@ -289,15 +273,14 @@ private:
     ControlBlock* block_ = nullptr;
 };
 
-
 template <typename T, typename U>
 inline bool operator==(const SharedPtr<T>& left, const SharedPtr<U>& right);
 
 // Allocate memory only once
 template <typename T, typename... Args>
 SharedPtr<T> MakeShared(Args&&... args) {
-    
-    ControlBlockObject<T>* block = new ControlBlockObject<T>(std::forward<Args>(args)...); 
+    ControlBlockObject<T>* block = new ControlBlockObject<T>(std::forward<Args>(args)...);
+
     T* ptr = block->GetY();
     return SharedPtr<T>(ptr, block);
 }
