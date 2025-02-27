@@ -8,4 +8,4 @@ The [course (C++ advanced)](https://gitlab.com/hse-cpp/cpp-advanced-hse/-/tree/m
 
 You can access all the task solutions in the repository provided [here](https://github.com/IgorAmashukeli/Cpp_content).
 
-However, please note that this repository is private.
+However, please note that this repository is private, so you need to ask to add you to the list of collaborators.
